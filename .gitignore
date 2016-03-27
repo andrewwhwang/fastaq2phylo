@@ -1,0 +1,19 @@
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
+!main.sh
+!README.md
+
+!/bin
+
+!/db/readme.txt
+
+!/output
+/output/*
+!/output/newick
+/output/newick/*
+!/output/pngs
+/output/pngs/*
+
+!/testing/test.fa
