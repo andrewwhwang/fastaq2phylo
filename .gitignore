@@ -3,6 +3,7 @@
 # Except this file
 !.gitignore
 !main.sh
+!assemble.sh
 !README.md
 !/bin
 !/db/readme.txt
