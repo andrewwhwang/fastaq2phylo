@@ -40,4 +40,4 @@ with open(filename) as f:
         handle = open(fileOut, "w")
         count = SeqIO.write(batch, handle, "fasta")
         handle.close()
-        print "Wrote %i records to %s" % (count, fileOut)
+        print "Wrote %i reads to %s" % (count, fileOut)

@@ -61,27 +61,28 @@ fi
 getLineage ()
 {
 #    awk '/^>/ {seqtotal+=seqlen;seqlen=0;seq+=1;next;}{seqlen=seqlen+length($0)}END{print seq" sequences, total length "seqtotal+seqlen": average length = "(seqtotal+seqlen)/seq}' output/$1.fasta
-    SEQS=$(awk '/^>/ {seq+=1}END{print seq}' output/$1.fasta)
-    echo "number of sequences: $SEQS"
+    seqs=$(awk '/^>/ {seq+=1}END{print seq}' output/$1.fasta)
+    echo "number of sequences: $seqs"
     if [ $DB = 'viruses' ] ; then
-        FORMAT="sgi"
+        format="sgi"
     elif [ $DB = 'nt' ] ; then
-        FORMAT="staxids"
+        format="staxids"
     fi
-    PARA=4  # paralllelize x4
-    echo "spliting fasta into $PARA files"
-    python bin/fastaSplit.py -file "output/$1.fasta" -num $PARA -total $SEQS -filenum $1
+    para=4  # paralllelize x4
+    echo "spliting fasta into $para files"
+    python bin/fastaSplit.py -file "output/$1.fasta" -num $para -total $seqs -filenum $1
     echo "blasting fasta sequences"
-    for i in $(eval echo {0..$(expr $PARA - 1)}) ; do
-        (blastn -query output/$1.$i.fasta -max_hsps 1 -max_target_seqs 1 -out output/blastout.$i.txt -db db/$DB -outfmt "10 qseqid $FORMAT sstart send slen" -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") & 
+    for i in $(eval echo {0..$(expr $para - 1)}) ; do
+        (blastn -query output/$1.$i.fasta -max_hsps 1 -max_target_seqs 1 -out output/blastout.$i.txt -db db/$DB -outfmt "10 qseqid $format sstart send slen" -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") & 
     done
     wait
     cat output/blastout.*.txt > output/blastout.txt
     echo "getting lineage from hits"
     python bin/lineage.py -file 'output/blastout.txt' -dbType $DB > output/lineage.$1.txt
 }
-
-extension="${QUERY##*.}"
+filename=$(basename "$QUERY")
+extension="${filename##*.}"
+name="${filename%.*}"
 if [ "$extension" = "fastq" ] || [ "$extension" = "fq" ] ; then
     echo 'converting fastq into fasta'
     cat $QUERY | paste - - - - | cut -f1-2 | sed 's/^@/>/g' | tr '\t' '\n' > output/result.fasta
@@ -105,7 +106,7 @@ else
 fi
 cat output/lineage.*.txt > output/lineage.txt
 echo 'creating taxonomy tree'
-python bin/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$QUERY.$DB.$READS"
-#rm output/*.*
+python bin/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS"
+rm output/*.*
 echo 'done!'
 

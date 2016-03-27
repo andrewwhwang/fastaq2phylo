@@ -36,7 +36,7 @@ with open(filename) as f:
     seqPer = ceil(total/num)
     record_iter = SeqIO.parse(f,"fasta")
     for i, batch in enumerate(batch_iterator(record_iter, seqPer)) :
-        fileOut = "%s.%i.fasta" % (filenum,i)
+        fileOut = "output/%s.%i.fasta" % (filenum,i)
         handle = open(fileOut, "w")
         count = SeqIO.write(batch, handle, "fasta")
         handle.close()

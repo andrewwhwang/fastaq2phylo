@@ -9,7 +9,7 @@ import matplotlib.cm as cm
 parser = ArgumentParser()
 parser.add_argument('-file', help="lineage file to be parsed")
 parser.add_argument('-thres', help="threshold of num of reads")
-parser.add_argument('-param', help="string of various params used")
+parser.add_argument('-param', help="list of params. Used to make filenames")
 parser.add_argument('-samples', help="number of times run")
 args = parser.parse_args()
 

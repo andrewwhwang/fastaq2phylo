@@ -9,7 +9,7 @@ import matplotlib.cm as cm
 parser = ArgumentParser()
 parser.add_argument('-file', help="lineage file to be parsed")
 parser.add_argument('-thres', help="threshold of num of reads")
-parser.add_argument('-param', help="string of various params used")
+parser.add_argument('-param', help="list of params. Used to make filenames")
 parser.add_argument('-samples', help="number of times run")
 args = parser.parse_args()
 
@@ -76,7 +76,7 @@ def addColors(t):
         
 def getColorStr(x):
     cmap = cm.get_cmap('Blues')
-    r,g,b,a = cmap(x)
+    r,g,b,a = cmap(x*.4 + .15)
     r=int(r*255)
     g=int(g*255)
     b=int(b*255)
@@ -131,6 +131,7 @@ def mylayout(node):
 ts = TreeStyle()
 ts.layout_fn = mylayout
 #ct.show(tree_style=ts)
+param = param.split("/")[-1]
 t.write(format=9, outfile="output/newick/"+param+".nw")
 ct.render('output/pngs/'+param+'.png',tree_style=ts)
 #print t
