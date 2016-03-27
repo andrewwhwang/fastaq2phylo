@@ -4,7 +4,7 @@
 !.gitignore
 !main.sh
 !README.md
-!/bin
-!/db/readme.txt
-!/output/readme.txt
-!/testing/test.fa
+!bin
+!db/readme.txt
+!output/readme.txt
+!testing/test.fa
