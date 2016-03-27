@@ -4,16 +4,7 @@
 !.gitignore
 !main.sh
 !README.md
-
 !/bin
-
 !/db/readme.txt
-
-!/output
-/output/*
-!/output/newick
-/output/newick/*
-!/output/pngs
-/output/pngs/*
-
+!/output/readme.txt
 !/testing/test.fa
