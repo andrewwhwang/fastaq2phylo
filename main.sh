@@ -68,7 +68,7 @@ getLineage ()
     elif [ $DB = 'nt' ] ; then
         format="staxids"
     fi
-    para=4  # paralllelize x4
+    para=8  # paralllelize x4
     echo "spliting fasta into $para files"
     python bin/fastaSplit.py -file "output/$1.fasta" -num $para -total $seqs -filenum $1
     echo "blasting fasta sequences"
@@ -78,7 +78,7 @@ getLineage ()
     wait
     cat output/blastout.*.txt > output/blastout.txt
     echo "getting lineage from hits"
-    python bin/lineage.py -file 'output/blastout.txt' -dbType $DB > output/lineage.$1.txt
+    python bin/lineage.py -file 'output/blastout.txt' -dbType $DB -filenum $1 #> output/lineage.$1.txt
 }
 filename=$(basename "$QUERY")
 extension="${filename##*.}"
