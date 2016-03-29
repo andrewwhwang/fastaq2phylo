@@ -11,6 +11,7 @@ args = parser.parse_args()
 
 filename = args.file
 dbType = args.dbType
+filenum  = args.filenum
 #filename = 'C:/Users/Andrew.Hwang/Desktop/one_click/output/blastout.txt'
 #dbType = 'nt'
 

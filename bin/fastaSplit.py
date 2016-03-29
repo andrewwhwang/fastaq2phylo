@@ -3,9 +3,9 @@ from argparse import ArgumentParser
 from math import ceil
 parser = ArgumentParser()
 parser.add_argument('-file', help="fasta file to be split")
-parser.add_argument('-filenum', help="fasta file's index #")
-parser.add_argument('-num', help="number of fasta files to be split")
+parser.add_argument('-num', help="number of fasta files to be split into")
 parser.add_argument('-total', help="number of sequences")
+parser.add_argument('-filenum', help="fasta file's index #")
 args = parser.parse_args()
 
 filename = args.file
