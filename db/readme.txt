@@ -1,1 +1,1 @@
-out ncbi databases here
+put ncbi databases here
