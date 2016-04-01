@@ -67,9 +67,9 @@ getLineage ()
     elif [ $DB = 'nt' ] ; then
         format="staxids"
     fi
-    para=8  # paralllelize x4
+    para=8  # paralllelize x8
     echo "spliting fasta into $para files"
-    python bin/fastaSplit.py -file "output/$1.fasta" -num $para -total $totalSeqs -filenum $1
+    python scripts/fastaSplit.py -file "output/$1.fasta" -num $para -total $totalSeqs -filenum $1
     echo "blasting fasta sequences"
     for i in $(eval echo {0..$(expr $para - 1)}) ; do
         (blastn -query output/$1.$i.fasta -max_hsps 1 -max_target_seqs 1 -out output/blastout.$i.txt -db db/$DB -outfmt "10 qseqid $format sstart send slen" -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") & 
@@ -77,12 +77,13 @@ getLineage ()
     wait
     cat output/blastout.*.txt > output/blastout.txt
     echo "getting lineage from hits"
-    python bin/lineage.py -file 'output/blastout.txt' -dbType $DB -filenum $1 #> output/lineage.$1.txt
+    python scripts/lineage.py -file 'output/blastout.txt' -dbType $DB -filenum $1 #> output/lineage.$1.txt
 }
 
 filename=$(basename "$QUERY")
 extension="${filename##*.}"
 name="${filename%.*}"
+echo "##############################STARTING $name.$extension##############################"
 if [ "$extension" = "fastq" ] || [ "$extension" = "fq" ] ; then
     echo 'converting fastq into fasta'
     cat $QUERY | paste - - - - | cut -f1-2 | sed 's/^@/>/g' | tr '\t' '\n' > output/result.fasta
@@ -96,11 +97,13 @@ fi
 totalSeqs=$(awk '/^>/ {seq+=1}END{print seq}' output/result.fasta)
 echo "total number of sequences: $totalSeqs"
 if [ $READS -ne '0' ] ; then
-    totalSeqs=$READS
+    if [ "$READS" -lt "$totalSeqs" ]; then
+        totalSeqs=$READS
+    fi
     for j in $(eval echo {1..$SAMPLES}) ; do
-        echo "#########################PROCESSING SAMPLE $j##################################"
+        echo "------------------------------PROCESSING SAMPLE $j------------------------------"
         echo "selecting $READ sequences at random"
-        python bin/randomFasta.py -file output/result.fasta -num $READS -total $totalSeqs -sampleNum $j #> output/$j.fasta
+        python scripts/randomFasta.py -file output/result.fasta -num $READS -total $totalSeqs -sampleNum $j #> output/$j.fasta
         getLineage $j 
     done
 else
@@ -109,7 +112,7 @@ else
 fi
 cat output/lineage.*.txt > output/lineage.txt
 echo 'creating taxonomy tree'
-python bin/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS"
+python scripts/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS.$THRES"
 find output/ -maxdepth 1 ! -name 'readme.txt' -type f -exec rm {} +
 echo 'done!'
 
