@@ -5,6 +5,7 @@ import re
 from argparse import ArgumentParser
 import numpy as np
 import matplotlib.cm as cm
+from math import log
 
 parser = ArgumentParser()
 parser.add_argument('-file', help="lineage file to be parsed")
@@ -76,7 +77,9 @@ def addColors(t):
         
 def getColorStr(x):
     cmap = cm.get_cmap('Blues')
-    r,g,b,a = cmap(x*.4 + .15)
+    y = lambda x: .15 * (log(x+.018)+4)
+    r,g,b,a = cmap(y(x))
+    #y = (ln(x+.018) + 4) * .15
     r=int(r*255)
     g=int(g*255)
     b=int(b*255)
