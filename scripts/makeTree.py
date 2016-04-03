@@ -18,8 +18,10 @@ filename = args.file
 thres = float(args.thres)
 param = args.param
 samples = int(args.samples)
-#filename = 'C:/Users/Andrew.Hwang/Desktop/one_click/output/lineage.txt'
+#filename = '../output/lineage.txt'
 #thres = 0
+#param = "testing"
+#samples = 1
 def tree(): 
     return defaultdict(tree)
 
@@ -103,7 +105,6 @@ newick += ';'
 t = Tree(newick, format=1)
 ct = ClusterTree(t.write(), matrix)
 
-
 addColors(ct)
 
 
@@ -115,7 +116,7 @@ array = ct.arraytable
 matrix_dist = [i for r in xrange(len(array.matrix))for i in array.matrix[r] if np.isfinite(i)]
 matrix_max = np.max(matrix_dist)
 matrix_min = np.min(matrix_dist)
-matrix_avg = matrix_min+((matrix_max-matrix_min)/2)
+matrix_avg = (matrix_max+matrix_min)/2
 
 # Creates a profile face that will represent node's profile as a
 # heatmap

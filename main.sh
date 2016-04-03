@@ -67,7 +67,7 @@ getLineage ()
     elif [ $DB = 'nt' ] ; then
         format="staxids"
     fi
-    para=8  # paralllelize x8
+    para=4  # paralllelize x4
     echo "spliting fasta into $para files"
     python scripts/fastaSplit.py -file "output/$1.fasta" -num $para -total $totalSeqs -filenum $1
     echo "blasting fasta sequences"
@@ -113,6 +113,6 @@ fi
 cat output/lineage.*.txt > output/lineage.txt
 echo 'creating taxonomy tree'
 python scripts/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS.$THRES"
-find output/ -maxdepth 1 ! -name 'readme.txt' -type f -exec rm {} +
+find output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -type f -exec rm {} +
 echo 'done!'
 
