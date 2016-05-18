@@ -5,7 +5,8 @@
 !main.sh
 !filter.sh
 !README.md
-!/scripts/*
+!scripts/
+!scripts/*
 !/db/readme.txt
 !/output/readme.txt
 !/testing/test.fa
