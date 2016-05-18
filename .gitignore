@@ -3,9 +3,9 @@
 # Except this file
 !.gitignore
 !main.sh
-!assemble.sh
+!filter.sh
 !README.md
-!/bin
+!/scripts/*.py
 !/db/readme.txt
 !/output/readme.txt
 !/testing/test.fa
