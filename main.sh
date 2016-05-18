@@ -43,9 +43,9 @@ if [ ! -e "$QUERY" ] ; then
 fi
 if [ "$DB" = "" ] ; then
     DB="nt"
-elif [ "$DB" != 'nt' ] && [ "$DB" != 'viruses' ]; then
-    echo "invalid database"
-    usage
+#elif [ "$DB" != 'nt' ] && [ "$DB" != 'viruses' ]; then
+#    echo "invalid database"
+#    usage
 fi
 
 if [ ! -d output ]; then
@@ -67,7 +67,7 @@ getLineage ()
     elif [ $DB = 'nt' ] ; then
         format="staxids"
     fi
-    para=4  # paralllelize x4
+    para=8  # paralllelize x4
     echo "spliting fasta into $para files"
     python scripts/fastaSplit.py -file "output/$1.fasta" -num $para -total $totalSeqs -filenum $1
     echo "blasting fasta sequences"
