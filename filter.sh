@@ -1,7 +1,7 @@
 #!/bin/bash
 usage ()
 {
-  echo 'Usage : filter.sh FASTQ/A [-r #READS_PER_SAMPLE] [-s #BOOTSTRAP_SAMPLES] [-t THRESHOLD] [-db nt/viruses]'
+  echo 'Usage : filter.sh FASTQ/A [-r #READS_PER_SAMPLE] [-s #BOOTSTRAP_SAMPLES] [-t THRESHOLD] [-db DATABASE]'
   exit
 }
 if [ "$#" -gt 9 ] || [ "$#" -lt 1 ] ; then
