@@ -4,6 +4,7 @@
 !.gitignore
 !main.sh
 !filter.sh
+!filter.sh.bak
 !README.md
 !scripts/
 !scripts/*

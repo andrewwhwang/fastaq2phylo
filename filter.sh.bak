@@ -80,6 +80,7 @@ getLineage ()
     lineDiff=$((numLinesBefore - numLinesAfter))
     echo "got rid of $((lineDiff / 2)) sequences"
     echo "$(tput setaf 1)getting lineage from hits$(tput sgr0)"
+    python scripts/lineage.py -file 'output/filtered_blast.txt' -dbType $DB -filenum $1 #> output/lineage.$1.txt
 }
 
 filename=$(basename "$QUERY")
@@ -117,6 +118,9 @@ else
     mv output/result.fasta output/0.fasta
     getLineage 0
 fi
-find output/ -maxdepth 1 ! -name 'filtered_fasta.fasta' -type f -exec rm {} +
+cat output/lineage.*.txt > output/lineage.txt
+echo 'creating taxonomy tree'
+python scripts/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS.$THRES"
+find output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'filtered_blast.txt' -and ! -name 'filtered_fasta.fasta' -type f -exec rm {} +
 echo 'done!'
 
