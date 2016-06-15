@@ -12,8 +12,10 @@ args = parser.parse_args()
 filename = args.file
 dbType = args.dbType
 filenum  = args.filenum
-#filename = 'C:/Users/Andrew.Hwang/Desktop/one_click/output/blastout.txt'
-#dbType = 'nt'
+
+# filename = 'C:/Users/Andrew.Hwang/Desktop/fastaq2phylo/output/blastout.txt'
+# dbType = 'nt'
+# filenum  = "0"
 
 memory = {}
 writeLines = []
