@@ -70,15 +70,15 @@ getLineage ()
         format="staxids"
     fi
     para=8  # paralllelize x4
-    echo "spliting fasta into $para files"
+    echo "$(tput setaf 1)spliting fasta into $para files$(tput sgr0)"
     python $BASEDIR/scripts/fastaSplit.py -file "$BASEDIR/output/$1.fasta" -num $para -total $totalSeqs -filenum $1
-    echo "blasting fasta sequences"
+    echo "$(tput setaf 1)blasting fasta sequences$(tput sgr0)"
     for i in $(eval echo {0..$(expr $para - 1)}) ; do
         (blastn -query $BASEDIR/output/$1.$i.fasta -max_hsps 1 -max_target_seqs 1 -out $BASEDIR/output/blastout.$i.txt -db $BASEDIR/db/$DB -outfmt "10 qseqid $format sstart send slen" -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") & 
     done
     wait
     cat $BASEDIR/output/blastout.*.txt > $BASEDIR/output/blastout.txt
-    echo "getting lineage from hits"
+    echo "$(tput setaf 1)getting lineage from hits$(tput sgr0)"
     python $BASEDIR/scripts/lineage.py -file "$BASEDIR/output/blastout.txt" -dbType $DB -filenum $1 #> output/lineage.$1.txt
 }
 
@@ -87,12 +87,12 @@ extension="${filename##*.}"
 name="${filename%.*}"
 echo "##############################STARTING $name.$extension##############################"
 if [ "$extension" = "fastq" ] || [ "$extension" = "fq" ] ; then
-    echo 'converting fastq into fasta'
+    echo "$(tput setaf 1)converting fastq into fasta$(tput sgr0)"
     cat $QUERY | paste - - - - | cut -f1-2 | sed 's/^@/>/g' | tr '\t' '\n' > $BASEDIR/output/result.fasta
 elif [ "$extension" = "fasta" ] || [ "$extension" = "fa" ] || [ "$extension" = "fas" ] ; then 
     cp $QUERY $BASEDIR/output/result.fasta
 else
-    echo "file format must be either fastq or fasta"
+    echo "$(tput setaf 1)file format must be either fastq or fasta$(tput sgr0)"
     usage
 fi
 
@@ -104,7 +104,7 @@ if [ $READS -ne '0' ] ; then
     fi
     for j in $(eval echo {1..$SAMPLES}) ; do
         echo "------------------------------PROCESSING SAMPLE $j------------------------------"
-        echo "selecting $READ sequences at random"
+        echo "$(tput setaf 1)selecting $READ sequences at random$(tput sgr0)"
         python $BASEDIR/scripts/randomFasta.py -file $BASEDIR/output/result.fasta -num $READS -total $totalSeqs -sampleNum $j #> output/$j.fasta
         getLineage $j 
     done
@@ -112,9 +112,9 @@ else
     mv $BASEDIR/output/result.fasta $BASEDIR/output/0.fasta
     getLineage 0
 fi
-#cat $BASEDIR/output/lineage.*.txt > $BASEDIR/output/lineage.txt
-#echo 'creating taxonomy tree'
-#python $BASEDIR/scripts/makeTree.py -file $BASEDIR/output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS.$THRES"
-##find $BASEDIR/output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -type f -exec rm {} +
-#echo 'done!'
+cat $BASEDIR/output/lineage.*.txt > $BASEDIR/output/lineage.txt
+echo "$(tput setaf 1)creating taxonomy tree$(tput sgr0)"
+python $BASEDIR/scripts/makeTree.py -file $BASEDIR/output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS.$THRES"
+#find $BASEDIR/output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -type f -exec rm {} +
+echo "$(tput setaf 1)done!$(tput sgr0)"
 

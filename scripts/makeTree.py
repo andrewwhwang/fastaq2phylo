@@ -135,6 +135,7 @@ def mylayout(node):
 ts = TreeStyle()
 ts.layout_fn = mylayout
 #ct.show(tree_style=ts)
-t.write(format=9, outfile="output/newick/"+param+".nw")
-ct.render('output/pngs/'+param+'.png',tree_style=ts)
+path = "/".join(filename.split("/")[:-1])
+t.write(format=9, outfile=path+"/newick/"+param+".nw")
+ct.render(path+'/pngs/'+param+'.png',tree_style=ts)
 #print t
