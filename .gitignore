@@ -6,8 +6,10 @@
 !filter.sh
 !filter.sh.bak
 !README.md
+!db/
+!db/*
 !scripts/
 !scripts/*
-!/db/readme.txt
+# !/db/readme.txt
 !/output/readme.txt
 !/testing/test.fa
