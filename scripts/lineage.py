@@ -39,6 +39,6 @@ with open(filename, 'r') as f:
             strList = [str(names[taxid]) for taxid in lineage]
             writeLines.append( '; '.join(strList) + "::" + str(pos))
 			
-with open('output/lineage.'+filenum+'.txt', 'w') as f:
+with open(filename[:-12]+'lineage.'+filenum+'.txt', 'w') as f:
     f.writelines("%s\n" % line for line in writeLines)
         

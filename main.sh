@@ -1,4 +1,6 @@
 #!/bin/bash
+BASEDIR=$(dirname "$0")
+echo $BASEDIR
 usage ()
 {
   echo 'Usage : main.sh FASTQ/A [-r #READS_PER_SAMPLE] [-s #BOOTSTRAP_SAMPLES] [-t THRESHOLD] [-db nt/viruses]'
@@ -48,14 +50,14 @@ if [ "$DB" = "" ] ; then
 #    usage
 fi
 
-if [ ! -d output ]; then
-    mkdir output
+if [ ! -d $BASEDIR/output ]; then
+    mkdir $BASEDIR/output
 fi
-if [ ! -d "output/newick" ]; then
-    mkdir output/newick
+if [ ! -d "$BASEDIR/output/newick" ]; then
+    mkdir $BASEDIR/output/newick
 fi
-if [ ! -d "output/pngs" ]; then
-    mkdir output/pngs
+if [ ! -d "$BASEDIR/output/pngs" ]; then
+    mkdir $BASEDIR/output/pngs
 fi
 
 getLineage ()
@@ -69,15 +71,15 @@ getLineage ()
     fi
     para=8  # paralllelize x4
     echo "spliting fasta into $para files"
-    python scripts/fastaSplit.py -file "output/$1.fasta" -num $para -total $totalSeqs -filenum $1
+    python $BASEDIR/scripts/fastaSplit.py -file "$BASEDIR/output/$1.fasta" -num $para -total $totalSeqs -filenum $1
     echo "blasting fasta sequences"
     for i in $(eval echo {0..$(expr $para - 1)}) ; do
-        (blastn -query output/$1.$i.fasta -max_hsps 1 -max_target_seqs 1 -out output/blastout.$i.txt -db db/$DB -outfmt "10 qseqid $format sstart send slen" -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") & 
+        (blastn -query $BASEDIR/output/$1.$i.fasta -max_hsps 1 -max_target_seqs 1 -out $BASEDIR/output/blastout.$i.txt -db $BASEDIR/db/$DB -outfmt "10 qseqid $format sstart send slen" -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") & 
     done
     wait
-    cat output/blastout.*.txt > output/blastout.txt
+    cat $BASEDIR/output/blastout.*.txt > $BASEDIR/output/blastout.txt
     echo "getting lineage from hits"
-    python scripts/lineage.py -file 'output/blastout.txt' -dbType $DB -filenum $1 #> output/lineage.$1.txt
+    python $BASEDIR/scripts/lineage.py -file "$BASEDIR/output/blastout.txt" -dbType $DB -filenum $1 #> output/lineage.$1.txt
 }
 
 filename=$(basename "$QUERY")
@@ -86,15 +88,15 @@ name="${filename%.*}"
 echo "##############################STARTING $name.$extension##############################"
 if [ "$extension" = "fastq" ] || [ "$extension" = "fq" ] ; then
     echo 'converting fastq into fasta'
-    cat $QUERY | paste - - - - | cut -f1-2 | sed 's/^@/>/g' | tr '\t' '\n' > output/result.fasta
+    cat $QUERY | paste - - - - | cut -f1-2 | sed 's/^@/>/g' | tr '\t' '\n' > $BASEDIR/output/result.fasta
 elif [ "$extension" = "fasta" ] || [ "$extension" = "fa" ] || [ "$extension" = "fas" ] ; then 
-    cp $QUERY output/result.fasta
+    cp $QUERY $BASEDIR/output/result.fasta
 else
     echo "file format must be either fastq or fasta"
     usage
 fi
 
-totalSeqs=$(awk '/^>/ {seq+=1}END{print seq}' output/result.fasta)
+totalSeqs=$(awk '/^>/ {seq+=1}END{print seq}' $BASEDIR/output/result.fasta)
 echo "total number of sequences: $totalSeqs"
 if [ $READS -ne '0' ] ; then
     if [ "$READS" -lt "$totalSeqs" ]; then
@@ -103,16 +105,16 @@ if [ $READS -ne '0' ] ; then
     for j in $(eval echo {1..$SAMPLES}) ; do
         echo "------------------------------PROCESSING SAMPLE $j------------------------------"
         echo "selecting $READ sequences at random"
-        python scripts/randomFasta.py -file output/result.fasta -num $READS -total $totalSeqs -sampleNum $j #> output/$j.fasta
+        python $BASEDIR/scripts/randomFasta.py -file $BASEDIR/output/result.fasta -num $READS -total $totalSeqs -sampleNum $j #> output/$j.fasta
         getLineage $j 
     done
 else
-    mv output/result.fasta output/0.fasta
+    mv $BASEDIR/output/result.fasta $BASEDIR/output/0.fasta
     getLineage 0
 fi
-cat output/lineage.*.txt > output/lineage.txt
-echo 'creating taxonomy tree'
-python scripts/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS.$THRES"
-find output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -type f -exec rm {} +
-echo 'done!'
+#cat $BASEDIR/output/lineage.*.txt > $BASEDIR/output/lineage.txt
+#echo 'creating taxonomy tree'
+#python $BASEDIR/scripts/makeTree.py -file $BASEDIR/output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS.$THRES"
+##find $BASEDIR/output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -type f -exec rm {} +
+#echo 'done!'
 

@@ -23,5 +23,5 @@ with open(filename) as f:
             lines.append(">"+i.id)
             lines.append(i.seq)
 
-with open('output/'+sampleNum+'.fasta', 'w') as f:
+with open(filename[:-12]+sampleNum+'.fasta', 'w') as f:
     f.writelines("%s\n" % line for line in lines)

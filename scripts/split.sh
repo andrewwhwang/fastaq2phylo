@@ -4,8 +4,8 @@ do
     then
         outfile=${line#>}.fa
         outfile=${outfile// /.}
-        echo $line > output/$outfile
+        echo $line > $2/output/$outfile
     else
-        echo $line >> output/$outfile
+        echo $line >> $2/output/$outfile
     fi
 done < $1

@@ -26,10 +26,10 @@ with open(fa) as f:
             fasta.append(">"+read.id)
             fasta.append(read.seq)
                
-with open('output/filtered_blast.txt', "w") as file:
+with open(blastout[:-4]+'_filtered.txt', "w") as file:
     for item in blast:
         file.write("%s" % item)
         
-with open('output/filtered_fasta.fasta', "w") as file:
+with open(blastout[:-12]+'filtered_fasta.fasta', "w") as file:
     for item in fasta:
         file.write("%s\n" % item)

@@ -13,7 +13,13 @@ filenum = args.filenum
 num = float(args.num)
 total = float(args.total)
 
+#filename = "../output/0.fasta"
+#filenum = str(0)
+#num = 8.0
+#total = 15.0
 
+path = "/".join(filename.split("/")[:-1])
+print path
 def batch_iterator(iterator, batch_size) :
     entry = True
     while entry :
@@ -36,7 +42,7 @@ with open(filename) as f:
     seqPer = ceil(total/num)
     record_iter = SeqIO.parse(f,"fasta")
     for i, batch in enumerate(batch_iterator(record_iter, seqPer)):
-        fileOut = "output/%s.%i.fasta" % (filenum,i)
+        fileOut = path+"/%s.%i.fasta" % (filenum,i)
         handle = open(fileOut, "w")
         count = SeqIO.write(batch, handle, "fasta")
         handle.close()
