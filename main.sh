@@ -17,7 +17,7 @@ while [ "$1" != "" ]; do
 							;;
 			-t )            shift
 							THRES=$1
-							;;                            
+							;;
 			-db )           shift
 							DB=$1
 							;;
@@ -57,22 +57,36 @@ fi
 if [ ! -d "output/pngs" ]; then
     mkdir output/pngs
 fi
-
+export BLASTDB="C:/Users/Andrew.Hwang/Desktop/fastaq2phylo/db/"
 getLineage ()
 {
 #    awk '/^>/ {seqtotal+=seqlen;seqlen=0;seq+=1;next;}{seqlen=seqlen+length($0)}END{print seq" sequences, total length "seqtotal+seqlen": average length = "(seqtotal+seqlen)/seq}' output/$1.fasta
     # seqs=$(awk '/^>/ {seq+=1}END{print seq}' output/$1.fasta)
-    if [ $DB = 'viruses' ] ; then
-        format="sgi"
-    elif [ $DB = 'nt' ] ; then
-        format="staxids"
+    if [ $DB = 'nt' ] ; then
+        TASK="blastn"
+        ID="staxid"
+    elif [ $DB = 'mir' ] ; then
+        TASK="blastn-short"
+        ID="sgi"
+        ALTNAME="sseqid"
+    elif [ $DB = 'hiv' ] ; then
+        TASK="blastn"
+        ID="sgi"
+        ALTNAME="sseqid"
+    elif [ $DB = 'blood' ] ; then
+        TASK="blastn"
+        ID="sgi"
+    elif [ $DB = 'viruses' ] ; then
+        TASK="blastn"
+        ID="sgi"
     fi
     para=8  # paralllelize x4
     echo "spliting fasta into $para files"
     python scripts/fastaSplit.py -file "output/$1.fasta" -num $para -total $totalSeqs -filenum $1
     echo "blasting fasta sequences"
     for i in $(eval echo {0..$(expr $para - 1)}) ; do
-        (blastn -query output/$1.$i.fasta -max_hsps 1 -max_target_seqs 1 -out output/blastout.$i.txt -db db/$DB -outfmt "10 qseqid $format sstart send slen" -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") & 
+        (blastn -task $TASK -query output/$1.$i.fasta -max_hsps 1 -max_target_seqs 1 -out output/blastout.$i.txt -db db/$DB \
+        -outfmt "6 qseqid $ID sstart send slen $ALTNAME" -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") &
     done
     wait
     cat output/blastout.*.txt > output/blastout.txt
@@ -87,7 +101,7 @@ echo "##############################STARTING $name.$extension###################
 if [ "$extension" = "fastq" ] || [ "$extension" = "fq" ] ; then
     echo 'converting fastq into fasta'
     cat $QUERY | paste - - - - | cut -f1-2 | sed 's/^@/>/g' | tr '\t' '\n' > output/result.fasta
-elif [ "$extension" = "fasta" ] || [ "$extension" = "fa" ] || [ "$extension" = "fas" ] ; then 
+elif [ "$extension" = "fasta" ] || [ "$extension" = "fa" ] || [ "$extension" = "fas" ] ; then
     cp $QUERY output/result.fasta
 else
     echo "file format must be either fastq or fasta"
@@ -104,7 +118,7 @@ if [ $READS -ne '0' ] ; then
         echo "------------------------------PROCESSING SAMPLE $j------------------------------"
         echo "selecting $READ sequences at random"
         python scripts/randomFasta.py -file output/result.fasta -num $READS -total $totalSeqs -sampleNum $j #> output/$j.fasta
-        getLineage $j 
+        getLineage $j
     done
 else
     mv output/result.fasta output/0.fasta
@@ -115,4 +129,3 @@ echo 'creating taxonomy tree'
 python scripts/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$READS.$THRES"
 find output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -type f -exec rm {} +
 echo 'done!'
-
