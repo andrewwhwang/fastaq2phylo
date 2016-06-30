@@ -4,32 +4,29 @@ from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('-blastout', help="blastout file")
 parser.add_argument('-fa', help="fasta file")
+parser.add_argument('-num', help="number for naming")
 args = parser.parse_args()
 
 blastout = args.blastout
 fa = args.fa
-human = []
-blast = []
+num = args.num
+
+blastnum = []
 fasta = []
 with open(blastout, 'r') as f:
-    for line in f:
-        items = line.split(",")
-        if items[1] == "9606":
-            human.append(items[0])
-        else:
-            blast.append(line)
-            
+    blastnum = [line[:-1] for line in f]
+
 with open(fa) as f:
     record_iter = SeqIO.parse(f,"fasta")
-    for read in record_iter:
-        if read.id not in human:
+    for i, read in enumerate(record_iter):
+        if str(i+1) in blastnum:
             fasta.append(">"+read.id)
             fasta.append(read.seq)
-               
-with open('output/filtered_blast.txt', "w") as file:
-    for item in blast:
-        file.write("%s" % item)
-        
-with open('output/filtered_fasta.fasta', "w") as file:
+
+# with open('output/filtered_blast.txt', "w") as file:
+#     for item in blast:
+#         file.write("%s" % item)
+#
+with open('output/filtered_fasta.'+num+'.fasta', "w") as file:
     for item in fasta:
         file.write("%s\n" % item)

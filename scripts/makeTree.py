@@ -35,9 +35,10 @@ def parseLineage(filename):
     with open(filename, 'r') as f:
         for line in f:
             lineage = line.split('::')[0]
-            pos= line.split('::')[1]
-            pos = int(pos[:-1]) #gets rid of \n character
-            count.setdefault(lineage, []).append(pos)
+            pos = line.split('::')[1].split('-')
+            pos = sorted(map(int, pos))
+            for x in range (pos[0],pos[1]+1,5):
+                count.setdefault(lineage, []).append(x)
     return count
 
 def getSuffixandMatrixandNewick(count):
