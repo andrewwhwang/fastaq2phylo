@@ -5,4 +5,5 @@
   * ete3
   * numpy
   * matplotlib
-2. NBI-blast+
+2. NBI-blast+ 2.4.0
+3. poretools

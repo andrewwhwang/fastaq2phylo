@@ -1,7 +1,7 @@
 #!/bin/bash
 usage ()
 {
-  echo 'Usage : main.sh FASTQ/A [-r #READS_PER_SAMPLE] [-s #BOOTSTRAP_SAMPLES] [-t THRESHOLD] [-db nt/viruses] [-f filterdb]'
+  echo 'Usage : main.sh FASTQ/A/5 [-r #READS_PER_SAMPLE] [-s #BOOTSTRAP_SAMPLES] [-t THRESHOLD] [-db nt/viruses] [-f filterdb]'
   exit
 }
 if [ "$#" -gt 10 ] || [ "$#" -lt 1 ] ; then
@@ -87,7 +87,7 @@ getLineage ()
         TASK="blastn"
         ID="sgi"
     fi
-    echo "##############################BLASTING FILTERED SEQUENCES TO $DB##############################"
+    echo "##############################BLASTING REMAINING SEQUENCES TO $DB##############################"
     echo "spliting fasta into $para files"
     python scripts/fastaSplit.py -file "output/filtered_fasta.$1.fasta" -num $para -total $totalSeqs -filenum $1
     echo "blasting fasta sequences"
@@ -108,30 +108,50 @@ filterOut ()
     python scripts/fastaSplit.py -file "output/$1.fasta" -num $para -total $totalSeqs -filenum $1
     echo "blast filtering fasta sequences"
     for i in $(eval echo {0..$(expr $para - 1)}) ; do
-        (blastn -task blastn -query output/$1.$i.fasta -out output/filtered.$1.$i.out -evalue 0.1 -db db/$FILTER \
+        (blastn -task blastn -query output/$1.$i.fasta -out output/filtered.$1.$i.out -evalue 0.1 -max_hsps 1 -num_alignments 0 -num_descriptions 1 -db db/$FILTER \
         -word_size 11 -gapopen 5 -gapextend 2 -reward 2 -penalty -3 -num_threads $(nproc) >/dev/null 2>&1; echo "part $i done") &
     done
     wait
     > output/nohits.$1.ids
     for i in $(eval echo {0..$(expr $para - 1)}) ; do
-        grep -B5 "***** No hits" output/filtered.$1.$i.out | grep '^Query=' | sed 's/^Query= //' >> output/nohits.$1.ids
+        grep -B10 "***** No hits" output/filtered.$1.$i.out | grep '^Query=' | sed 's/^Query= //' >> output/nohits.$1.ids
     done
-    python scripts/filter.py -blastout "output/nohits.$1.ids" -fa $QUERY -num 0
+    python scripts/filter.py -blastout "output/nohits.$1.ids" -fa "output/$1.fasta" -num $1
 }
-filename=$(basename "$QUERY")
-extension="${filename##*.}"
-name="${filename%.*}"
-echo "##############################STARTING $name.$extension##############################"
-if [ "$extension" = "fastq" ] || [ "$extension" = "fq" ] ; then
-    echo 'converting fastq into fasta'
-    cat $QUERY | paste - - - - | cut -f1-2 | sed 's/^@/>/g' | tr '\t' '\n' > output/result.fasta
-elif [ "$extension" = "fasta" ] || [ "$extension" = "fa" ] || [ "$extension" = "fas" ] ; then
-    cp $QUERY output/result.fasta
-else
-    echo "file format must be either fastq or fasta"
-    usage
-fi
 
+worker ()
+{
+    filterOut $1
+    if [ -s output/filtered_fasta.$1.fasta ] ; then
+        totalSeqs=$(awk '/^>/ {seq+=1}END{print seq}' output/filtered_fasta.$1.fasta)
+    else
+        echo "No sequences left after filtering"
+        exit
+    fi
+    getLineage $1
+}
+
+if [ -f $QUERY ] ; then
+    filename=$(basename "$QUERY")
+    extension="${filename##*.}"
+    name="${filename%.*}"
+    echo "##############################STARTING $name.$extension##############################"
+    if [ "$extension" = "fastq" ] || [ "$extension" = "fq" ] ; then
+        echo 'converting fastq into fasta'
+        cat $QUERY | paste - - - - | cut -f1-2 | sed 's/^@/>/g' | tr '\t' '\n' > output/result.fasta
+    elif [ "$extension" = "fasta" ] || [ "$extension" = "fa" ] || [ "$extension" = "fas" ] ; then
+        cp $QUERY output/result.fasta
+    elif [ "$extension" = "fast5" ] ; then
+        echo 'converting fast5 into fasta'
+        poretools fasta $QUERY > output/result.fasta
+    else
+        echo "file format must be either fastq or fasta"
+        usage
+    fi
+elif [ -d $QUERY ] ; then
+    echo 'converting fast5 into fasta'
+    poretools fasta $QUERY > output/result.fasta
+fi
 totalSeqs=$(awk '/^>/ {seq+=1}END{print seq}' output/result.fasta)
 echo "total number of sequences: $totalSeqs"
 if [ $READS -ne '0' ] ; then
@@ -140,19 +160,17 @@ if [ $READS -ne '0' ] ; then
     fi
     for j in $(eval echo {1..$SAMPLES}) ; do
         echo "------------------------------PROCESSING SAMPLE $j------------------------------"
-        echo "selecting $READ sequences at random"
+        echo "selecting $READS sequences at random"
         python scripts/randomFasta.py -file output/result.fasta -num $READS -total $totalSeqs -sampleNum $j #> output/$j.fasta
-        getLineage $j
+        worker $j
     done
 else
     mv output/result.fasta output/0.fasta
-    filterOut 0
-    totalSeqs=$(awk '/^>/ {seq+=1}END{print seq}' output/filtered_fasta.0.fasta)
-    getLineage 0
+    worker 0
 fi
 cat output/lineage.*.txt > output/lineage.txt
 cat output/filtered_fasta.*.fasta > output/filtered_fasta.fasta
 echo 'creating taxonomy tree'
 python scripts/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$FILTER.$READS.$THRES"
-find output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -and ! -name 'filtered_fasta.txt' -type f -exec rm {} +
+find output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -and ! -name 'filtered_fasta.fasta' -type f -exec rm {} +
 echo 'done!'
