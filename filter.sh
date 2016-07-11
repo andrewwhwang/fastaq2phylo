@@ -1,7 +1,7 @@
 #!/bin/bash
 usage ()
 {
-  echo 'Usage : main.sh FASTQ/A/5 [-r #READS_PER_SAMPLE] [-s #BOOTSTRAP_SAMPLES] [-t THRESHOLD] [-db nt/viruses] [-f filterdb]'
+  echo 'Usage : main.sh FASTQ/A/5 [-r #READS_PER_SAMPLE] [-s #BOOTSTRAP_SAMPLES] [-t THRESHOLD] -db nt/viruses -f filterdb'
   exit
 }
 if [ "$#" -gt 10 ] || [ "$#" -lt 1 ] ; then
@@ -172,5 +172,5 @@ cat output/lineage.*.txt > output/lineage.txt
 cat output/filtered_fasta.*.fasta > output/filtered_fasta.fasta
 echo 'creating taxonomy tree'
 python scripts/makeTree.py -file output/lineage.txt -thres $THRES -samples $SAMPLES -param "$name.$DB.$FILTER.$READS.$THRES"
-find output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -and ! -name 'filtered_fasta.fasta' -type f -exec rm {} +
+# find output/ -maxdepth 1 ! -name 'readme.txt' -and ! -name 'lineage.txt' -and ! -name 'blastout.txt' -and ! -name 'filtered_fasta.fasta' -type f -exec rm {} +
 echo 'done!'
